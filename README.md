@@ -20,16 +20,32 @@ static, κτλ ).
 
 
 
+route που δέχεται δύο παραμέτρους ηλικίας
 @route('/findAirlineByAge/<x>/<y>')
 def find_airline(x,y):
-    
+    # δημιουργία cursor για εκτέλεση SQL ερωτημάτων
     cursor = connection.cursor()
-    
-    cursor.execute("SELECT airline_id, COUNT(*) FROM passengers WHERE age BETWEEN %s AND %s GROUP BY airline_id", (x,y))
-
+    # βρίσκεις πόσους επιβάτες έχει κάθε airline για επιβάτες με ηλικία απο x μέχρι y
+    cursor.execute("SELECT airline_id, COUNT(*) FROM passengers WHERE age BETWEEN %s AND %s GROUP BY airline_id ORDER BY COUNT(*) DESC", (x,y))
+    #παίρνει όλα τα αποτελέσματα
     result = cursor.fetchall()
 
-    return str(result)
+    if result :
+        top_row = result[0]
+        airline_id = top_row[0]
+        passengers_count = top_row[1]
+    
+    
+        #βρισκει το ονομα της αεροπορικης εταιριας
+        cursor.execute("SELECT name FROM airlines WHERE id=%s", (airline_id,))
+        res_name = cursor.fetchone()
+        airline_name = res_name[0]
+
+        #βρισκει το πληθος των αεροσκαφών:
+        cursor.execute("SELECT COUNT(*) FROM airplanes WHERE airline_id = %s", (airline_id,))
+        res_name = cursor.fetchone()
+        planes_count = res_name[0]
+        return template('result', name = airline_name,p_count=passengers_count,airplanes_count = planes_count, x=x, y=y) 
 
     για την ασκηση 1: findAirlinebyAge: Βρείτε την αεροπορική εταιρεία με τους περισσότερους ταξιδιώτες με ηλικία 
 μικρότερη από Χ και μεγαλύτερη από Υ. Η συνάρτηση αυτή παίρνει ως ορίσματα δύο ακέραιους 
