@@ -4,8 +4,8 @@ from bottle import route, run
 connection = pymysql.connect(
 host='localhost',
 user = 'root' ,
-password = 'sasa' ,
-database = 'lab3db'
+password = 'password' ,
+database = 'flights'
 )
 
 
