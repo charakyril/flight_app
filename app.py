@@ -1,6 +1,7 @@
 import pymysql 
-from bottle import route, run,
-template, request
+from bottle import route, 
+run, template, request
+
 
 # Σύνδεση με την βάση δεδομένων MySQL
 connection = pymysql.connect(
@@ -54,15 +55,28 @@ def find_airline(x,y):
             SELECT airports_name, 
         COUNT(*)
             FROM passengers
-            WHERE airlines_id = &s
+            WHERE airlines_id = %s
         AND flights_date BETWEEN %s AND %s 
             GROUP BY airports_name
             ORDER BY COUNT(*) DESC
         """
-        cursor.execute(sql,(airlines_id,A,B))
-
+        cursor.execute(sql,(airlines_id, A, B))
+        result = cursor.fetchone()
         if result:
-            
+            #result[0] is the airports_name
+            #result[1] is the number of passengers 
+            return template(
+                'results.ptl',
+                name=x, 
+                airport = result[0],
+                total = result[1],
+                start = A, 
+                end=B
+        )
+        else:
+            return "Δεν βρεθηκαν δεδομένα για αυτό το χρονικό διάστημα."
+                
+
 
     #εκκίνηση του web server
     run(host='localhost', port=8080, debug=True)
