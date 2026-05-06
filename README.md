@@ -77,4 +77,4 @@ def todo():
 run(host='localhost', port=8080, debug=True) -> στο τελος του py αρχειου 
 
 
-hdiiqudq
+# δεν εχω καταλαβει τα Post και get  που μπαινει μαλλον μετα το route καιι αν το connection πρεπει νσ γινεται καθε φορα μεσα σε καθε συναρτηση και αν εβαλα σωστα το flights στο database
