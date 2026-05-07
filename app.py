@@ -11,75 +11,84 @@ password = 'password' ,
 database = 'flights'
 )
 
-# route που δέχεται δύο παραμέτρους ηλικίας
 @route('/findAirlineByAge/<x>/<y>')
 def find_airline(x,y):
-    # δημιουργία cursor για εκτέλεση SQL ερωτημάτων
-    cursor = connection.cursor()
-    # βρίσκεις πόσους επιβάτες έχει κάθε airline για επιβάτες με ηλικία απο x μέχρι y
-    cursor.execute("SELECT airlines_id, COUNT(*) FROM passengers WHERE age BETWEEN %s AND %s GROUP BY airlines_id ORDER BY COUNT(*) DESC", (x,y))
-    #παίρνει όλα τα αποτελέσματα
-    result = cursor.fetchall()
-    if result :
-        top_row = result[0]
-        airlines_id = top_row[0]
-        passengers_count = top_row[1]
-    
-    
-        #βρισκει το ονομα της αεροπορικης εταιριας
-        cursor.execute("SELECT name FROM airlines WHERE id=%s", (airlines_id,))
-        res_name = cursor.fetchone()
-        airlines_name = res_name[0]
+    age1 = int(x)
+    age2 = int(y)
 
-        #βρισκει το πληθος των αεροσκαφών:
-        cursor.execute("SELECT COUNT(*) FROM airplanes WHERE airlines_id = %s", (airlines_id,))
-        res_name = cursor.fetchone()
-        planes_count = res_name[0]
-        return template('result', name = airlines_name,p_count=passengers_count,airplanes_count = planes_count, x=x, y=y) 
+    min_age = min(age1,age2)
+    max_age = max(age1,age2)
+
+    year_low = 2026 - max_age
+    year_high = 2026 - min_age
+
+    # cursor activation for the sql questions
+    cursor = connection.cursor()
+   
+   
+    sql = """
+        SELECT a.name, a.id, COUNT(p.id)
+        FROM passengers p ,
+            flights_has_passengers  fhp, 
+            flights f, 
+            routes r, 
+            airlines a
+        WHERE p.id = fhp.passengers_id
+          AND fhp.flights_id = f.id
+          AND f.routes_id = r.id
+          AND r.airlines_id = a.id
+          AND p.year_of_birth BETWEEN %s AND %s
+        GROUP BY a.id, a.name
+        ORDER BY COUNT(p.id) DESC 
+    """
+    cursor.execute(sql, (year_low, year_high))
+    result = cursor.fetchone()
+    
+    if result:
+        a_name, a_id, p_count = result
+        
+        cursor.execute("SELECT COUNT(airplanes_id) FROM airlines_has_airplanes WHERE airlines_id = %s", (a_id, ))
+        planes = cursor.fetchone()[0]
+        return template('results', rows=[(a_name, p_count, planes)])
+
+    return "No results found."
+
 
 
 @route('/findAirportVisitors/<x>/<A>/<B>')
-    def find_airport_visitors(x,A,B):
+def find_airport_visitors(x,A,B):
         #x -> name of airline A -> date (YYY-MM-DD) B -> date (YYY-MM-DD)
         cursor = connection.cursor()
-        cursor.execute("SELECT airlines_id FROM airlines WHERE name = %s", (x, ))
-        airlines_row = cursor.fetchone()
 
-        if not airlines_row:
-            return "Η εταιρία δεν βρέθηκε στη βάση δεδομένων."
-        
-        airlines_id = airlines_row[0]
-
-     # finding the airport and the number of passengers that travel between these dates on the airport and by the airline X 
         sql = """
-            SELECT airports_name, 
-        COUNT(*)
-            FROM passengers
-            WHERE airlines_id = %s
-        AND flights_date BETWEEN %s AND %s 
-            GROUP BY airports_name
-            ORDER BY COUNT(*) DESC
-        """
-        cursor.execute(sql,(airlines_id, A, B))
+              SELECT air.name, COUNT(fhp.passengers_id)
+              FROM airlines a, 
+                   routes r, 
+                   airports air, 
+                   flights f, 
+                   flights_has_passengers fhp
+              WHERE a.id = r.airlines_id
+                AND r.destination_id = air.id
+                AND f.routes_id = r.id
+                AND fhp.flights_id = f.id
+                AND a.name = %s
+                AND f.date BETWEEN %s AND %s
+              GROUP BY air.id, air.name
+              ORDER BY COUNT(fhp.passengers_id) DESC
+              """
+
+        cursor.execute(sql, (x, A, B))
         result = cursor.fetchone()
+
         if result:
-            #result[0] is the airports_name
-            #result[1] is the number of passengers 
-            return template(
-                'results.ptl',
-                name=x, 
-                airport = result[0],
-                total = result[1],
-                start = A, 
-                end=B
-        )
-        else:
-            return "Δεν βρεθηκαν δεδομένα για αυτό το χρονικό διάστημα."
-                
-
-
-    #εκκίνηση του web server
-    run(host='localhost', port=8080, debug=True)
+            return template('results' , rows=[result])
+        return "No results found."
+   
+   
+   
+   
+ #εκκίνηση του web server
+run(host='localhost', port=8080, debug=True)
 
 
 
