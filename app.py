@@ -37,7 +37,8 @@ def find_airline(x,y):
           AND fhp.flights_id = f.id
           AND f.routes_id = r.id
           AND r.airlines_id = a.id
-          AND p.year_of_birth BETWEEN %s AND %s
+          AND p.year_of_birth > %s
+          AND p.year_of_birth < %s
         GROUP BY a.id, a.name
         ORDER BY COUNT(p.id) DESC 
     """
@@ -78,10 +79,10 @@ def find_airport_visitors(x,A,B):
               """
 
         cursor.execute(sql, (x, A, B))
-        result = cursor.fetchone()
+        result = cursor.fetchall()
 
         if result:
-            return template('results' , rows=[result])
+            return template('results' , rows = result)
         return "No results found."
    
    
