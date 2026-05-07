@@ -85,7 +85,31 @@ def find_airport_visitors(x,A,B):
             return template('results' , rows = result)
         return "No results found."
    
-   
+@route('/findAlternativeFlights/<A>/<B>/<X>')
+def findAlternativeFlights(A,B,X):
+        #Α πόλη αναχώρησης Β πόλη άφιξης Χ ημερομηνία που φτάνεισ τον προορισμό του 
+        cursor = connection.cursor()
+
+        sql = """
+            SELECT f.id, al.alias, arr.name, airpl.model 
+            FROM flights f, routes r, airlines al, airports arr, airports dep, airplanes airpl 
+            WHERE f.routes_id = r.id
+              AND r.airlines_id = al.id
+              AND r.destination_id = arr.id
+              AND r.source_id = dep.id
+              AND f.airplanes_id = airpl.id
+              AND dep.city = %s
+              AND arr.city = %s
+              AND f.date = %s
+              AND  al.active = 'Y'
+              """
+
+        ##cursor.execute(sql, (x, A, B))
+        ##result = cursor.fetchall()
+
+        ##if result:
+          ##  return template('results' , rows = result)
+        ##return "No results found."
    
    
  #εκκίνηση του web server
