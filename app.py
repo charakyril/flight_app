@@ -1,13 +1,12 @@
 import pymysql 
-from bottle import route, 
-run, template, request
+from bottle import route, run, template, request
 
 
 # Σύνδεση με την βάση δεδομένων MySQL
 connection = pymysql.connect(
 host ='localhost',  # o server της βάσης τοπικά
 user = 'root' ,     # όνομα χρήστη
-password = 'password' ,
+password = 'password', # κωδικός πρόσβασης, 
 database = 'flights'
 )
 
@@ -110,7 +109,73 @@ def findAlternativeFlights(A,B,X):
         ##if result:
           ##  return template('results' , rows = result)
         ##return "No results found."
+
+
+@route('/findLargestAirlines/<N>')
+def findLargestAirlines(N):
+        #N ο αριθμός των εταιρειών με τισ περισσότερες πτήσεις 
+        cursor = connection.cursor()
+
+        sql = """
+            SELECT a.name, a.code, COUNT(aa.airplanes_id), COUNT(f.id)
+            FROM airlines a, routes r, flights f, airlines_has_airplanes aa
+            WHERE a.id = r.airlines_id
+            AND f.routes_id = r.id
+            AND aa.airlines_id = a.id
+            AND a.active = 'Y'
+            GROUP BY a.id, a.name, a.code
+            ORDER BY COUNT(f.id) DESC
+            """
+
+        ##cursor.execute(sql, (x, A, B))
+        ##result = cursor.fetchall()
+
+        ##if result:
+          ##  return template('results' , rows = result)
+        ##return "No results found."
    
+   
+
+@route('/updatePassengerStatus/<A>/<B>')
+def updatePassengerStatus(A, B):
+        #N ο αριθμός των εταιρειών με τισ περισσότερες πτήσεις 
+        cursor = connection.cursor()
+
+        sql = """
+
+        #Add tier column
+        ALTER TABLE passengers ADD COLUMN tier VARCHAR(10);
+
+        #(For a selected airline name) get flights-per-passenger counts
+
+        SELECT p.id, COUNT(f.id)
+        FROM passengers p, flights_has_passengers fhp, flights f, routes r, airlines a
+        WHERE p.id = fhp.passengers_id
+        AND fhp.flights_id = f.id
+        AND f.routes_id = r.id
+        AND r.airlines_id = a.id
+        AND a.name = %s
+        GROUP BY p.id;
+
+        #(For a selected airline name + chosen tier) list passenger names in that tier
+
+        SELECT p.name, p.surname
+        FROM passengers p, flights_has_passengers fhp, flights f, routes r, airlines a
+        WHERE p.id = fhp.passengers_id
+        AND fhp.flights_id = f.id
+        AND f.routes_id = r.id
+        AND r.airlines_id = a.id
+        AND a.name = %s
+        AND p.tier = %s
+        GROUP BY p.id, p.name, p.surname;
+        """
+
+        ##cursor.execute(sql, (x, A, B))
+        ##result = cursor.fetchall()
+
+        ##if result:
+          ##  return template('results' , rows = result)
+        ##return "No results found."
    
  #εκκίνηση του web server
 run(host='localhost', port=8080, debug=True)
