@@ -103,12 +103,12 @@ def findAlternativeFlights(A,B,X):
               AND  al.active = 'Y'
               """
 
-        ##cursor.execute(sql, (x, A, B))
-        ##result = cursor.fetchall()
+        cursor.execute(sql, (x, A, B))
+        result = cursor.fetchall()
 
-        ##if result:
-          ##  return template('results' , rows = result)
-        ##return "No results found."
+        if result:
+            return template('results' , rows = result)
+        return "No results found."
 
 
 @route('/findLargestAirlines/<N>')
@@ -127,12 +127,12 @@ def findLargestAirlines(N):
             ORDER BY COUNT(f.id) DESC
             """
 
-        ##cursor.execute(sql, (x, A, B))
-        ##result = cursor.fetchall()
+        cursor.execute(sql, (x, A, B))
+        result = cursor.fetchall()
 
-        ##if result:
-          ##  return template('results' , rows = result)
-        ##return "No results found."
+        if result:
+            return template('results' , rows = result)
+        return "No results found."
    
    
   @route('/findAlternativeFlights/<A>/<B>/<X>')
