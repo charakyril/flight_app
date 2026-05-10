@@ -1,13 +1,12 @@
 import pymysql 
-from bottle import route, 
-run, template, request
+from bottle import route, run, template, request
 
 
 # Σύνδεση με την βάση δεδομένων MySQL
 connection = pymysql.connect(
 host ='localhost',  # o server της βάσης τοπικά
 user = 'root' ,     # όνομα χρήστη
-password = 'password' ,
+password = 'password', # κωδικός πρόσβασης, 
 database = 'flights'
 )
 
@@ -85,6 +84,55 @@ def find_airport_visitors(x,A,B):
             return template('results' , rows = result)
         return "No results found."
    
+@route('/findAlternativeFlights/<A>/<B>/<X>')
+def findAlternativeFlights(A,B,X):
+        #Α πόλη αναχώρησης Β πόλη άφιξης Χ ημερομηνία που φτάνεισ τον προορισμό του 
+        cursor = connection.cursor()
+
+        sql = """
+            SELECT f.id, al.alias, arr.name, airpl.model 
+            FROM flights f, routes r, airlines al, airports arr, airports dep, airplanes airpl 
+            WHERE f.routes_id = r.id
+              AND r.airlines_id = al.id
+              AND r.destination_id = arr.id
+              AND r.source_id = dep.id
+              AND f.airplanes_id = airpl.id
+              AND dep.city = %s
+              AND arr.city = %s
+              AND f.date = %s
+              AND  al.active = 'Y'
+              """
+
+        ##cursor.execute(sql, (x, A, B))
+        ##result = cursor.fetchall()
+
+        ##if result:
+          ##  return template('results' , rows = result)
+        ##return "No results found."
+
+
+@route('/findLargestAirlines/<N>')
+def findLargestAirlines(N):
+        #N ο αριθμός των εταιρειών με τισ περισσότερες πτήσεις 
+        cursor = connection.cursor()
+
+        sql = """
+            SELECT a.name, a.code, COUNT(aa.airplanes_id), COUNT(f.id)
+            FROM airlines a, routes r, flights f, airlines_has_airplanes aa
+            WHERE a.id = r.airlines_id
+            AND f.routes_id = r.id
+            AND aa.airlines_id = a.id
+            AND a.active = 'Y'
+            GROUP BY a.id, a.name, a.code
+            ORDER BY COUNT(f.id) DESC
+            """
+
+        ##cursor.execute(sql, (x, A, B))
+        ##result = cursor.fetchall()
+
+        ##if result:
+          ##  return template('results' , rows = result)
+        ##return "No results found."
    
    
   @route('/findAlternativeFlights/<A>/<B>/<X>')
