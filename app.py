@@ -87,7 +87,126 @@ def find_airport_visitors(x,A,B):
    
    
    
+  @route('/findAlternativeFlights/<A>/<B>/<X>')
+def findAlternativeFlights(A,B,X):
+        #Α πόλη αναχώρησης Β πόλη άφιξης Χ ημερομηνία που φτάνεισ τον προορισμό του 
+        cursor = connection.cursor()
+
+        sql = """
+            SELECT f.id, al.alias, arr.name, airpl.model 
+            FROM flights f, routes r, airlines al, airports arr, airports dep, airplanes airpl 
+            WHERE f.routes_id = r.id
+              AND r.airlines_id = al.id
+              AND r.destination_id = arr.id
+              AND r.source_id = dep.id
+              AND f.airplanes_id = airpl.id
+              AND dep.city = %s
+              AND arr.city = %s
+              AND f.date = %s
+              AND  al.active = 'Y'
+              """
+
+        cursor.execute(sql, (A, B, X))
+        result = cursor.fetchall()
+
+        if result:
+          return template('results' , rows = result)
+        return "No results found."
+
+
+@route('/findLargestAirlines/<N>')
+def findLargestAirlines(N):
+        #N ο αριθμός των εταιρειών με τισ περισσότερες πτήσεις 
+        cursor = connection.cursor()
+
+        sql = """
+            SELECT a.name, a.code, COUNT(aa.airplanes_id), COUNT(f.id)
+            FROM airlines a, routes r, flights f, airlines_has_airplanes aa
+            WHERE a.id = r.airlines_id
+            AND f.routes_id = r.id
+            AND aa.airlines_id = a.id
+            AND a.active = 'Y'
+            GROUP BY a.id, a.name, a.code
+            ORDER BY COUNT(f.id) DESC
+            """
+
+        cursor.execute(sql)
+        result = cursor.fetchall()
+
+        if result:
+              n_results = result[:int(N)]
+              return template('results' , rows = n_results)
+        return "No results found."
    
+   
+
+@route('/updatePassengerStatus/<A>/<B>')
+def updatePassengerStatus(A, B):
+        #N ο αριθμός των εταιρειών με τισ περισσότερες πτήσεις 
+        cursor = connection.cursor()
+
+        try:
+            try:
+                cursor.execute("ALTER TABLE passengers ADD COLUMN tier VARCHAR(20)")
+            except:
+                pass
+
+            sql = """
+                 SELECT p.id , COUNT(*)
+                 FROM passengers p, 
+                      flights_has_passengers fhp, 
+                      flights f, 
+                      routes r, 
+                      airlines a
+                WHERE p.id = fhp.passengers_id
+                    AND fhp.flights_id = f.id
+                    AND f.routes_id = r.id
+                    AND r.airlines_id = a.id
+                    AND a.name = %s
+                    GROUP BY p.id
+                    """
+            cursor.execute(sql,(A, ))
+
+            results = cursor.fetchall()
+
+            for passenger_id, flights_count in results:
+
+            if flights_count <= 1:
+                passenger_tier = "Basic"
+
+            elif flights_count <= 4:
+                passenger_tier = "Silver"
+
+            elif flights_count == 5:
+                passenger_tier = "Gold"
+
+            else:
+                passenger_tier = "Platinum"
+
+            cursor.execute(
+                    """
+                    UPDATE passengers
+                    SET tier = %s
+                    WHERE id = %s 
+                    """,
+                    (passenger_tier, passenger_id)
+                )
+
+        connection.commit()
+    except:
+            connection.rollback()
+            return "Error occured during update."
+
+        sql_select = """
+            SELECT name,surname, tier
+            FROM passengers
+            WHERE tier = %s
+                  """
+        cursor.execute(sql_select, (B, ))
+        result = cursor.fetchall()
+        return template('results', rows = result)
+
+
  #εκκίνηση του web server
 run(host='localhost', port=8080, debug=True)
 
