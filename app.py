@@ -181,7 +181,7 @@ def updatePassengerStatus(A, B):
                 else:
                     passenger_tier = "Platinum"
 
-                    cursor.execute(
+                cursor.execute(
                     """
                     UPDATE passengers
                     SET tier = %s
@@ -190,8 +190,8 @@ def updatePassengerStatus(A, B):
                     (passenger_tier, passenger_id)
                     )
 
-        connection.commit()
-    except:
+            connection.commit()
+        except:
             connection.rollback()
             return "Error occured during update."
 
