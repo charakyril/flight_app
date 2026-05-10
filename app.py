@@ -103,7 +103,7 @@ def findAlternativeFlights(A,B,X):
               AND  al.active = 'Y'
               """
 
-        cursor.execute(sql, (x, A, B))
+        cursor.execute(sql, (A, B, X))
         result = cursor.fetchall()
 
         if result:
@@ -127,7 +127,7 @@ def findLargestAirlines(N):
             ORDER BY COUNT(f.id) DESC
             """
 
-        cursor.execute(sql, (x, A, B))
+        cursor.execute(sql,)
         result = cursor.fetchall()
 
         if result:
@@ -219,17 +219,17 @@ def updatePassengerStatus(A, B):
 
             for passenger_id, flights_count in results:
 
-            if flights_count <= 1:
-                passenger_tier = "Basic"
+                if flights_count <= 1:
+                    passenger_tier = "Basic"
 
-            elif flights_count <= 4:
-                passenger_tier = "Silver"
+                elif flights_count <= 4:
+                    passenger_tier = "Silver"
 
-            elif flights_count == 5:
-                passenger_tier = "Gold"
+                elif flights_count == 5:
+                    passenger_tier = "Gold"
 
-            else:
-                passenger_tier = "Platinum"
+                else:
+                    passenger_tier = "Platinum"
 
             cursor.execute(
                     """
