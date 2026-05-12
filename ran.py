@@ -5,8 +5,8 @@ import pymysql
 # Open database connection
 connection = pymysql.connect(host='localhost',
                              user='root',  # use your own user
-                             password='sasa', # use your own password
-                             database='labtest') # use your own test database schema
+                             password='Xara09012006!', # use your own password
+                             database='ergasia2') # use your own test database schema
 
 # prepare a cursor object using cursor() method
 cursor = connection.cursor()
