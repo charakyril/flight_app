@@ -14,7 +14,8 @@ def open_connection():
 
 @route('/')
 def home():
-    return '''
+    return template('index')
+    '''
     <h1>Flight App Queries</h1>
     <ul>
         <li><a href="/findAirlineByAge/30/20">Find Airline by Age</a> - /findAirlineByAge/&lt;max_age&gt;/&lt;min_age&gt;</li>
