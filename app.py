@@ -28,7 +28,7 @@ def home():
 
 
 @route('/findAirlineByAge/<x>/<y>')
-def find_airline(x,y):
+def findAirlineByAge(x,y):
     age1 = int(x)
     age2 = int(y)
 
@@ -76,7 +76,7 @@ def find_airline(x,y):
 
 
 @route('/findAirportVisitors/<x>/<A>/<B>')
-def find_airport_visitors(x,A,B):
+def findAirportVisitors(x,A,B):
     conn = None
     try:
         conn = open_connection()
