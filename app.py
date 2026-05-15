@@ -208,7 +208,7 @@ def updatePassengerStatus():
                 AND a.name = %s
                 GROUP BY p.id
                 """
-        cursor.execute(sql,(A, ))
+        cursor.execute(sql,(airline, ))
 
         results = cursor.fetchall()
 
