@@ -98,7 +98,7 @@ def findAirportVisitors():
               ORDER BY COUNT(fhp.passengers_id) DESC
               """
 
-        cursor.execute(sql, (x, A, B))
+        cursor.execute(sql, (airline,date_a,date_b))
         result = cursor.fetchall()
 
         if result:
@@ -113,7 +113,8 @@ def findAirportVisitors():
 
 @route('/findAlternativeFlights',method='POST')
 def findAlternativeFlights():
-    source = request.forms.get('destination_city')
+    source = request.forms.get('source_city')
+    destination = request.forms.get('destination_city')
     date = request.forms.get('travel_date')
     conn = None
     try:
@@ -133,7 +134,7 @@ def findAlternativeFlights():
               AND  al.active = 'Y'
               """
 
-        cursor.execute(sql, (A, B, X))
+        cursor.execute(sql, (source,destination,date))
         result = cursor.fetchall()
 
         if result:
@@ -168,7 +169,7 @@ def findLargestAirlines():
         result = cursor.fetchall()
 
         if result:
-            n_results = result[:int(N)]
+            n_results = result[:int(n)]
             return template('results.html' , rows = n_results)
         return "No results found."
     except pymysql.MySQLError as exc:
@@ -182,7 +183,7 @@ def findLargestAirlines():
 @route('/updatePassengerStatus',method='POST')
 def updatePassengerStatus():
     airline = request.forms.get('tier_airline')
-    category = request.forms.get(tier_category)
+    category = request.forms.get('tier_category')
     conn = None
     try:
         conn = open_connection()
@@ -249,7 +250,7 @@ def updatePassengerStatus():
             FROM passengers
             WHERE tier = %s
                   """
-        cursor.execute(sql_select, (B, ))
+        cursor.execute(sql_select, (category, ))
         result = cursor.fetchall()
         return template('results.html', rows = result)
     except pymysql.MySQLError as exc:
