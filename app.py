@@ -14,7 +14,7 @@ def open_connection():
 
 @route('/')
 def home():
-    return template('index')
+    return template('index.html')
     '''
     <h1>Flight App Queries</h1>
     <ul>
@@ -27,16 +27,13 @@ def home():
     '''
 
 
-@route('/findAirlineByAge/<x>/<y>')
-def findAirlineByAge(x,y):
-    age1 = int(x)
-    age2 = int(y)
-
-    min_age = min(age1,age2)
-    max_age = max(age1,age2)
-
-    year_low = 2026 - max_age
-    year_high = 2026 - min_age
+@route('/findAirlineByAge', method = 'POST')
+def findAirlineByAge():
+    # παιρνουμε τις τιμες απο το index.html
+    age_max = request.forms.get('x')
+    age_min = request.forms.get('y')
+    year_low = 2026 - int(age_max)
+    year_high = 2026 - int(age_min)
 
     conn = None
     try:
@@ -65,7 +62,7 @@ def findAirlineByAge(x,y):
             a_name, a_id, p_count = result
             cursor.execute("SELECT COUNT(airplanes_id) FROM airlines_has_airplanes WHERE airlines_id = %s", (a_id, ))
             planes = cursor.fetchone()[0]
-            return template('results', rows=[(a_name, p_count, planes)])
+            return template('results.html', rows=[(a_name, p_count, planes)])
 
         return "No results found."
     except pymysql.MySQLError as exc:
@@ -75,8 +72,11 @@ def findAirlineByAge(x,y):
             conn.close()
 
 
-@route('/findAirportVisitors/<x>/<A>/<B>')
-def findAirportVisitors(x,A,B):
+@route('/findAirportVisitors', method = 'POST')
+def findAirportVisitors():
+    airline = request.forms.get('airline')
+    date_a = request.forms.get('date_a')
+    date_b = request.forms.get('date_b')
     conn = None
     try:
         conn = open_connection()
@@ -102,7 +102,7 @@ def findAirportVisitors(x,A,B):
         result = cursor.fetchall()
 
         if result:
-            return template('results' , rows = result)
+            return template('results.html' , rows = result)
         return "No results found."
     except pymysql.MySQLError as exc:
         return f"Database error: {exc}"
@@ -111,8 +111,10 @@ def findAirportVisitors(x,A,B):
             conn.close()
 
 
-@route('/findAlternativeFlights/<A>/<B>/<X>')
-def findAlternativeFlights(A,B,X):
+@route('/findAlternativeFlights',method='POST')
+def findAlternativeFlights():
+    source = request.forms.get('destination_city')
+    date = request.forms.get('travel_date')
     conn = None
     try:
         conn = open_connection()
@@ -135,7 +137,7 @@ def findAlternativeFlights(A,B,X):
         result = cursor.fetchall()
 
         if result:
-            return template('results' , rows = result)
+            return template('results.html' , rows = result)
         return "No results found."
     except pymysql.MySQLError as exc:
         return f"Database error: {exc}"
@@ -144,8 +146,9 @@ def findAlternativeFlights(A,B,X):
             conn.close()
 
 
-@route('/findLargestAirlines/<N>')
-def findLargestAirlines(N):
+@route('/findLargestAirlines',method='POST')
+def findLargestAirlines():
+    n = request.forms.get('top_n')
     conn = None
     try:
         conn = open_connection()
@@ -166,7 +169,7 @@ def findLargestAirlines(N):
 
         if result:
             n_results = result[:int(N)]
-            return template('results' , rows = n_results)
+            return template('results.html' , rows = n_results)
         return "No results found."
     except pymysql.MySQLError as exc:
         return f"Database error: {exc}"
@@ -176,8 +179,10 @@ def findLargestAirlines(N):
    
 
 
-@route('/updatePassengerStatus/<A>/<B>')
-def updatePassengerStatus(A, B):
+@route('/updatePassengerStatus',method='POST')
+def updatePassengerStatus():
+    airline = request.forms.get('tier_airline')
+    category = request.forms.get(tier_category)
     conn = None
     try:
         conn = open_connection()
@@ -246,7 +251,7 @@ def updatePassengerStatus(A, B):
                   """
         cursor.execute(sql_select, (B, ))
         result = cursor.fetchall()
-        return template('results', rows = result)
+        return template('results.html', rows = result)
     except pymysql.MySQLError as exc:
         return f"Database error: {exc}"
     finally:
